@@ -1,0 +1,44 @@
+/opt/local/hadoop-1.0.3/bin/hadoop
+bin/start-dfs.sh
+bin/start-mapred.sh
+
+henrypeng@node01:~/src$ javac -classpath /home/hduser/hadoop-1.0.4/hadoop-core-1.0.4.jar SublinearLogisticLone.java -d .
+henrypeng@node01:~/src$ jar cvf SublinearLogisticLone.jar *.class
+
+hadoop jar /home/henrypeng/src/SublinearLogistic.jar SublinearLogistic sublinear/2d/data.txt > sublinear_log.txt
+
+hadoop jar /home/henrypeng/src/SublinearLogistic.jar SublinearLogistic sublinear/url/ > sublinear_log.txt
+
+hadoop jar /home/henrypeng/src/SublinearLogisticLone.jar SublinearLogisticLone sublinear/url/ /home/henrypeng/url/ylabel > sublinear_log.txt
+
+hadoop jar /home/henrypeng/src/SublinearLogisticLtwo.jar SublinearLogisticLtwo sublinear/url/ /home/henrypeng/url/ylabel > sublinear_log.txt
+
+hduser@node01:~$ hadoop fs -copyToLocal sublinear/tmp/ tmp/
+hduser@node01:~$ cp -r tmp/* /home/henrypeng/url/results/4/
+hduser@node01:~$ rm -r tmp
+hduser@node01:~$ cp -r Iteration* /home/henrypeng/url/results/4/
+hduser@node01:~$ cp -r output.txt /home/henrypeng/url/results/4/
+hduser@node01:~$ rm Iteration-*
+hduser@node01:~$ rm output.txt 
+
+cd hadoop-1.0.4/logs
+hadoop job -list
+È¥¿´log
+
+du -s [dir] (calculated by kb)
+
+SublinearLogisticLone-v0.java
+parameter passing: configuration(separate)
+b: 0
+
+SublinearLogisticLone-v1.java
+parameter passing: configuration(combine)
+b: 0
+
+SublinearLogisticLone-v2.java
+parameter passing: hdfs
+b: 0
+
+SublinearLogisticLone-v3.java
+parameter passing: hdfs+memcache
+b: 0
