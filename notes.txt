@@ -1,0 +1,34 @@
+Pareto-optimal (multiple objective function---definition)
+Primal-Dual (from d to n)
+比较实验（别的framwork）
+先gzip
+
+把dual的sampling也改
+把sampling变成MR的过程（加快sampling的过程）
+
+Spark
+LatentVariable
+"One learning algorithm hypothesis" -- like kdd cup data?
+"Ng's work in NLP" -- related to children language acquisition?
+"Ng's work" -- SGD part maybe use sublinear?
+
+数据整合（发邮件问）
+
+coef的计算出了大bug（-1）
+！！！关于len的bug
+Time bottleneck (too many map-start process)---一点一点过
+different versions
+L1的vector不是真的sparse
+1: Primal Map Random Process
+2: T
+3: eta
+4: NumberOfReduceTask   1.5-2核数（快不了）  MultipleOutputs 压缩解压
+5: wavg&bavg
+6: kexiApproximateUpdate(new definition of nu)
+7: nu
+8: gamma
+
+下周一之前把更新版paper发给Ed
+可以找梁鼎
+Dataset调研可以问刘知远
+Engineering方向/Survey方向：Yoav-Signer、liblinear、Mahout。。。
