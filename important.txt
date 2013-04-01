@@ -21,9 +21,12 @@ hduser@node01:~$ cp -r output.txt /home/henrypeng/url/results/4/
 hduser@node01:~$ rm Iteration-*
 hduser@node01:~$ rm output.txt 
 
-cd hadoop-1.0.4/logs
+tmux  attach-session -t 1
+tmux  list-sessions
+tmux 
+sleep 1m && ls -al
+
 hadoop job -list
-È¥¿´log
 
 du -s [dir] (calculated by kb)
 

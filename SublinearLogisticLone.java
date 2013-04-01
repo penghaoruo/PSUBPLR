@@ -200,6 +200,9 @@ class DualMap extends Mapper<LongWritable, Text, IntWritable, Text> {
 	// Input eta value
 	public double eta;
 	
+	// Squared 2-norm value of w[]
+	double len;
+	
 	// Define clip function
 	public double clip(double a, double b) {
 		return Math.max(Math.min(a,b),(-1)*b);
@@ -226,6 +229,7 @@ class DualMap extends Mapper<LongWritable, Text, IntWritable, Text> {
 		jt=context.getConfiguration().getInt("jt",0);
 		b=context.getConfiguration().getFloat("b",0);
 		eta=context.getConfiguration().getFloat("eta",0);
+		len=context.getConfiguration().getFloat("len",0);
 		
 		// Initialize w[]
 		w=new double[d];
@@ -250,10 +254,7 @@ class DualMap extends Mapper<LongWritable, Text, IntWritable, Text> {
 		
 		// Chosen feature value - x[jt]
 		double x_value=0;
-		
-		// 2-norm value of x[]
-		double len;
-		
+
 		String line = value.toString();
 		StringTokenizer itr = new StringTokenizer(line);
 		
@@ -279,13 +280,13 @@ class DualMap extends Mapper<LongWritable, Text, IntWritable, Text> {
 		while (tmp.contains(":")) tmp=itr.nextToken();
 		
 		// Parse 2-norm value of x[]
-		len=Double.parseDouble(tmp);
+		//len=Double.parseDouble(tmp);
 		
 		// Parse data label
 		y=Integer.parseInt(itr.nextToken());
 		
 		// Multiplicative weights update method
-		double sigma=x_value*len*len/w[jt]+b*y;
+		double sigma=x_value*len/w[jt]+b*y;
 		double sigma_hat=clip(sigma,1.0/eta);
 		double res=1-eta*sigma_hat+eta*sigma_hat*eta*sigma_hat;
 		
@@ -337,6 +338,9 @@ public class SublinearLogisticLone {
 	// Value of w[] in previous iteration
 	static double prevw[]; 
 	
+	// Squared 2-norm value of w[]
+	static double len;
+	
 	// Sample in feature space
 	static public int fSample() {
 		int res=0;
@@ -355,7 +359,7 @@ public class SublinearLogisticLone {
 	static public void pInitial(String fname) throws Exception {
 		// Need to set before-hand
 		gamma=1E-8;
-		T=250;
+		T=100;
 		d=3231961;
 		n=2376130;
 		jt=0;
@@ -457,16 +461,19 @@ public class SublinearLogisticLone {
 		}
 
 		// Normalization
-		double res=0;
+		len=0;
 		for (int i=0;i<d;i++)
-			res=res+w[i]*w[i];
-		res=Math.sqrt(res);
-		for (int i=0;i<d;i++)
-			w[i]=w[i]/res;
+			len=len+w[i]*w[i];
+		if (len>1) {
+			double res=Math.sqrt(len);
+			for (int i=0;i<d;i++)
+				w[i]=w[i]/res;
+		}
 		
 		// Soft-thresholding
 		if (k!=0)
 			for (int i=0;i<d;i++) {
+				if (prevw[i]==0) w[i]=0; 
 				if (prevw[i]>0 && w[i]>0)
 					w[i]=Math.max(w[i]-gamma, 0);
 				if (prevw[i]<0 && w[i]<0)
@@ -482,7 +489,7 @@ public class SublinearLogisticLone {
 			wavg[i]=wavg[i]*(k)/(k+1)+w[i]/(k+1);
 		
 		// Update b
-		res=0;
+		double res=0;
 		for (int i=0;i<n;i++)
 			res+=p[i]*vy[i];
 		if (res>0) b=1;
@@ -623,6 +630,7 @@ public class SublinearLogisticLone {
 			conf_dual.setInt("jt", jt);
 			conf_dual.setFloat("b", (float)b);
 			conf_dual.setFloat("eta", (float)eta);
+			conf_dual.setFloat("len", (float)len);
 			
 			// Store w[] in hdfs file 
 			pass_throgh_hdfs(1);
