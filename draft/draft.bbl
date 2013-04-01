@@ -1,0 +1,115 @@
+\begin{thebibliography}{10}
+
+\bibitem{arora2005multiplicative}
+S.~Arora, E.~Hazan, and S.~Kale.
+\newblock The multiplicative weights update method: a meta algorithm and
+  applications.
+\newblock {\em Manuscript, 2005. Preliminary draft of paper available online at
+  http://www.cs.princeton.edu/~arora/pubs/MWsurvey.pdf}, 2005.
+
+\bibitem{balakrishnan2008algorithms}
+S.~Balakrishnan and D.~Madigan.
+\newblock Algorithms for sparse linear classifiers in the massive data setting.
+\newblock {\em The Journal of Machine Learning Research}, 9:313--337, 2008.
+
+\bibitem{chang2007psvm}
+Edward~Y Chang, Kaihua Zhu, Hao Wang, Hongjie Bai, Jian Li, Zhihuan Qiu, and
+  Hang Cui.
+\newblock Psvm: Parallelizing support vector machines on distributed computers.
+\newblock {\em Advances in Neural Information Processing Systems}, 20:16, 2007.
+
+\bibitem{clarkson2010sublinear}
+K.L. Clarkson, E.~Hazan, and D.P. Woodruff.
+\newblock Sublinear optimization for machine learning.
+\newblock In {\em Proceedings of the 2010 IEEE 51st Annual Symposium on
+  Foundations of Computer Science}, pages 449--457. IEEE Computer Society,
+  2010.
+
+\bibitem{cotter2012kernelized}
+A.~Cotter, S.~Shalev-Shwartz, and N.~Srebro.
+\newblock The kernelized stochastic batch perceptron.
+\newblock {\em Arxiv preprint arXiv:1204.0566}, 2012.
+
+\bibitem{dean2007largescale}
+Jeffrey Dean, Greg~S Corrado, Rajat Monga, Kai Chen, Matthieu Devin, Quoc~V Le,
+  Mark Mao, Marc'Aurelio Ranzato, Andrew~W Senior, Paul Tucker, Ke~Yang, and
+  Andrew~Y Ng.
+\newblock Large scale distributed deep networks.
+\newblock {\em Advances in Neural Information Processing Systems}, 2012.
+
+\bibitem{garberapproximating}
+D.~Garber and E.~Hazan.
+\newblock Approximating semidefinite programs in sublinear time.
+\newblock In {\em Advances in Neural Information Processing Systems}, 2011.
+
+\bibitem{genkin2007large}
+A.~Genkin, D.D. Lewis, and D.~Madigan.
+\newblock Large-scale bayesian logistic regression for text categorization.
+\newblock {\em Technometrics}, 49(3):291--304, 2007.
+
+\bibitem{HastieBook:SL}
+T.~Hastie, R.~Tishirani, and J.~Friedman.
+\newblock {\em The Elements of Statistical Learning: Data Mining, Inference,
+  and Prediction}.
+\newblock Springer-Verlag, New York, 2001.
+
+\bibitem{hazan2011optimal}
+E.~Hazan and T.~Koren.
+\newblock Optimal algorithms for ridge and lasso regression with partially
+  observed attributes.
+\newblock {\em Arxiv preprint arXiv:1108.4559}, 2011.
+
+\bibitem{hazanbeating}
+E.~Hazan, T.~Koren, and N.~Srebro.
+\newblock Beating sgd: Learning svms in sublinear time.
+\newblock In {\em Advances in Neural Information Processing Systems}, 2011.
+
+\bibitem{hogan1990livermore}
+C.~Hogan, L.~Cassell, J.~Foglesong, J.~Kordas, M.~Nemanic, and G.~Richmond.
+\newblock The livermore distributed storage system: Requirements and overview.
+\newblock In {\em Digest of Papers. Tenth IEEE Symposium on Mass Storage
+  Systems}, pages 6--17. IEEE, 1990.
+
+\bibitem{kyrola2012graphchi}
+Aapo Kyrola, Guy Blelloch, and Carlos Guestrin.
+\newblock Graphchi: Large-scale graph computation on just a pc.
+\newblock OSDI, 2012.
+
+\bibitem{shi2008fast}
+J.~Shi, W.~Yin, S.~Osher, and P.~Sajda.
+\newblock A fast hybrid algorithm for large scale l1-regularized logistic
+  regression.
+\newblock {\em Journal of Machine Learning Research}, 1:8888, 2008.
+
+\bibitem{tsumoto2004mining}
+S.~Tsumoto.
+\newblock Mining diagnostic rules from clinical databases using rough sets and
+  medical diagnostic model.
+\newblock {\em Information sciences}, 162(2):65--80, 2004.
+
+\bibitem{Vapnik:1998}
+V.~Vapnik.
+\newblock {\em Statistical Learning Theory}.
+\newblock John Wiley and Sons, New York, 1998.
+
+\bibitem{wang2009plda}
+Yi~Wang, Hongjie Bai, Matt Stanton, Wen-Yen Chen, and Edward Chang.
+\newblock Plda: Parallel latent dirichlet allocation for large-scale
+  applications.
+\newblock {\em Algorithmic Aspects in Information and Management}, pages
+  301--314, 2009.
+
+\bibitem{xiao2010dual}
+L.~Xiao.
+\newblock Dual averaging methods for regularized stochastic learning and online
+  optimization.
+\newblock {\em The Journal of Machine Learning Research}, 11:2543--2596, 2010.
+
+\bibitem{zhang2004solving}
+T.~Zhang.
+\newblock Solving large scale linear prediction problems using stochastic
+  gradient descent algorithms.
+\newblock In {\em Proceedings of the twenty-first international conference on
+  Machine learning}, page 116. ACM, 2004.
+
+\end{thebibliography}

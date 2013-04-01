@@ -203,7 +203,7 @@ There are many existing techniques that address logistic regression with $\ell_1
 
 The \textit{Reduced Memory Multi-pass} (RMMP) algorithm, proposed by Balakrishnan and Madigan \cite{balakrishnan2008algorithms}, is one of the most accurate and fastest convergent algorithms.
 RMMP trains sparse linear classifiers on high-dimensional datasets in a multi-pass manner.
-However, this algorithm has computational complexity and memory requirements that make learning on large-scale datasets infeasible.
+However, this algorithm has computational complexity and memory requirements that make learning on large-scale datasets extremely computational expensive.
 The central idea of the work is a straightforward quadratic approximation to the likelihood function.
 When the dimensionality of the data gets large, the cost of many vector-vector multiplication operations increases significantly.
 Also, the quadratic approximation is added together for all instances in each iteration, and such computation inevitably requires global reduction in a distributed storage system.
@@ -223,7 +223,9 @@ Later on, Cotter et al. \cite{cotter2012kernelized} extended the work to kerneli
 In \cite{hazan2011optimal}, Hazan et al. applied the sublinear approximation approach for solving ridge ($\ell_2$-regularized) and lasso ($\ell_1$-regularized) linear regression.
 Garber and Hazan \cite{garberapproximating} developed the method in semidenfinite programming (SDP).
 
-\comment{Need to add sth about classical parallel algorithms}
+In this paper, we mainly target the size of the training data at the Gigabytes level. These datasets require us to develop machine learning algorithms towards a more efficient and more parallelized end. In the Hadoop programming environment, researchers have already done much work to cater for the needs of massive datasets.
+
+Early work like PSVM (\textit{Parallel Support Vector Machines}) \cite{chang2007psvm} employed an approximation matrix decomposition method based on row selections to reduce the memory when running the algorithm. It can then increase the number of participated parallel computation nodes to several hundreds. Later, the work of PLDA (\textit{Parallel Latent Dirichlet Allocation}) \cite{wang2009plda} further improve the computational efficiency through the use of sampling methods. The proposed parallel algorithm in Hadoop is robust, for it has fault tolerance of machines, taking the advantage of Hadoop. Recently, the work by Dean et al. \cite{dean2007largescale} showed that the advantage of parallelization is fully taken in deep learning algorithms. It pushed the limits of parallel computational nodes to a hundred-million level, and in the meantime, achieved a best learning performance ever. Besides Hadoop, there are many other trials on parallelization in machine learning. GraphLab \cite{kyrola2012graphchi}, a recent developed tool in CMU (\textit{Carnegie Mellon University})for large-scale machine learning, tried to tackle with intrinsic problems of Hadoop when applied to machine leaning algorithms. However, the original design purpose is to improve efficiency in a single-machine multi-core situation, which is a drawback in a distributed system.
 
 \section{Learning Algorithms for Penalized Logistic Regression Models} \label{sec:plr}
 
@@ -250,13 +252,10 @@ In another case, we impose a Laplace prior for $\w$, whose density is given by
 \[	
 \log\,p\lc\bw \rc=d\,\log\frac{\gamma}{2}-\gamma{\|\bw\|}_{1}.
 \]
-With this prior, we get an optimization problem with the $\ell_1$-penalty.
+With this prior, we formulate an optimization problem with the $\ell_1$-penalty. $\ell_1$-penalty logistic regression can serve for both classification and feature selection simultaneously.
 \begin{equation} \label{eqn:5}
 	\max_{\bw ,b} \;  \big\{F(\w, b|\XM)- \gamma{\|\bw \|}_{1}\big\}.	
 \end{equation}
-
-The advantage of $\ell_1$-penalty over $\ell_2$-penalty is its utility in sparsity modeling \cite{tibshirani1996regression} .
-Thus, $\ell_1$-penalty logistic regression can serve for both classification and feature selection simultaneously.
 
 \subsection{Sublinear Algorithms}
 
@@ -276,6 +275,35 @@ The second one is the \textit{stochastic dual update}:
 \item[{(2)}] \; The probability vector $\bp$ is updated based on the above computed terms by using the \textit{Multiplicative Updates} (MW) framework~\cite{arora2005multiplicative} for online optimization over the simplex.
 \end{enumerate}
 
+We use the following notations in our algorithms and analysis.
+
+$clip\lc \cdot \rc$ is a projection function defined as follows:
+	\[
+	clip\lc a,b \rc \triangleq \max \lc \min \lc a,b \rc ,-b\rc \,\,\,\,\,\, a,b \in \mathbb{R}.
+	\]
+
+$\sgn \lc \cdot \rc$ is the sign function; namely,
+	
+	\[
+	\sgn \lc x \rc =
+		\begin{cases}
+ 		+1 & \text{ if } x>0  \\
+ 		0  & \text{ if } x=0  \\
+ 		-1 & \text{ if } x<0.
+		\end{cases}
+	\]
+
+$g\lc \cdot \rc$ is the logistic function; namely,
+	\[
+	g \lc x \rc=\frac{1}{1+e^{-x}}
+	\]
+
+We let $\Lambda$ be the $\mathbb{R}_{n}$ Euclidean space which meets the following conditions:
+	\[
+	\Lambda=\left\{ \bxi\in\mathbb{R}_{n} \, | \, \forall i, \, 0\leq{\xi}_{i}\leq 2, \, {\|\xi \|}_{1}\leq \nu n  \right
+	\}.
+	\]
+
 \subsection{Sequential Sublinear Algorithm for $\ell_2$-Penalty Logistic Regression} \label{sec:l2alg}
 	
 	\begin{table} [ht]
@@ -285,18 +313,25 @@ The second one is the \textit{stochastic dual update}:
 	\noalign{\smallskip}
 	\hline
 	\noalign{\smallskip}
-		Input parameters: $\varepsilon, \nu, X, Y$ \\
-		Initialize parameters: $T, \eta, {\mathbf{u}}_{0}, {\bw}_{1}, {\mathbf{\bq}}_{1}, {b}_{1}$\\
-		Iterations: $t=1 \sim T$ \\
-		\tspace ${\bp}_{t}\leftarrow{\bq}_{t}/{\|{\bq}_{t}\|}_{1}$ \\
-	    \tspace Choose ${i}_{t}\leftarrow i$ with probability $\bp(i)$ \\
-		\tspace $coef={y}_{{i}_{t}}g\lc-{y}_{{i}_{t}}\lc {{\bw}_{t}}^{T}{\mathbf{x}}_{i_t}+{b}_{t} \rc\rc$ \\
-		\tspace Update ${\bu}_{t}, {\bxi}_{t}$ \\
-		\tspace ${\bw}_{t}\leftarrow {\bu}_{t}/\max \left\{1,\|{\bu}_{t}\|_2 \right\}$ \\
-		\tspace Choose ${j}_{t}\leftarrow j$ with probability ${{\bw}_{t}\lj}^{2}/{\|{\bw}_{t}\|_2}^{2} $ \\
-		\tspace Iterations: $i=1 \sim n$ \\
-		\tspace\tspace Update probability vector using MW method. \\
-		Output: $\bar{\bw}=\frac{1}{T}\sum_{t}{\bw}_{t},\bar{b}=\frac{1}{T}\sum_{t}{b}_{t}$ \\
+		1:    Input: $\varepsilon>0, 0\leq\nu\leq1, X\in\mathbb{R}^{n\times d}, Y\in\mathbb{R}^{n} $ \\
+		2:    Let $T\leftarrow{1000}^{2}{\varepsilon}^{-2}\log n, \eta\leftarrow\sqrt{\log\lc n\rc/T}$ \\
+		3:    \tspace ${\mathbf{u}}_{0}\leftarrow{\mathbf{0}}_{d},{\bw}_{1}\leftarrow{\mathbf{0}}_{d},{\mathbf{\bq}}_{1}\leftarrow{\mathbf{1}}_{n},{b}_{1}\leftarrow 0$\\
+		4:    \textbf{for} $t=1$ to $T$ \textbf{do} \\
+		5:    \tspace ${\bp}_{t}\leftarrow{\bq}_{t}/{\|{\bq}_{t}\|}_{1}$ \\
+		6:    \tspace Choose ${i}_{t}\leftarrow i$ with probability $\bp(i)$ \\
+		7:    \tspace Let $coef={y}_{{i}_{t}}g\lc-{y}_{{i}_{t}}\lc {{\bw}_{t}}^{T}{\mathbf{x}}_{i_t}+{b}_{t} \rc\rc$ \\
+		8:    \tspace Let ${\bu}_{t}\leftarrow {\bu}_{t-1}+\frac{coef}{\sqrt{2T}}{\mathbf{x}}_{{i}_{t}}$ \\
+		9:    \tspace\tspace ${\bxi}_{t}\leftarrow \argmax_{\bxi\in \Lambda}\lc{{\bp}_{t}}^{T}\bxi\rc$ \\
+		10:   \tspace\hspace*{1.2em} ${b}_{t}\leftarrow \sgn\lc {{\bp}_{t}}^{T}\mathbf{y}\rc$ \\
+		11:   \tspace ${\bw}_{t}\leftarrow {\bu}_{t}/\max \left\{1,\|{\bu}_{t}\|_2 \right\}$ \\
+		12:   \tspace Choose ${j}_{t}\leftarrow j$ with probability ${{\bw}_{t}\lj}^{2}/{\|{\bw}_{t}\|_2}^{2} $ \\
+		13:   \tspace \textbf{for} $i=1$ to $n$ \textbf{do} \\
+		14:   \tspace\tspace $\sigma \leftarrow \mathbf{x}_{i} \lc {j}_{t}\rc{\|{\bw}_{t}\|_2}^{2}/{\bw}_{t}\lc {j}_{t} \rc+{\bxi}_{t}\li+{y}_{i}{b}_{t}$ \\
+		15:   \tspace\tspace $\hat{\sigma} \leftarrow clip\lc \sigma,1/\eta \rc$ \\
+		16:   \tspace\tspace ${\bq}_{t+1}\li \leftarrow {\bq}_{t}\li\lc 1-\eta\hat{\sigma} + {\eta}^{2}{\hat{\sigma}}^{2} \rc$ \\
+		17:   \tspace \textbf{end for} \\
+		18:   \textbf{end for} \\
+		19:   Output: $\bar{\bw}=\frac{1}{T}\sum_{t}{\bw}_{t},\bar{b}=\frac{1}{T}\sum_{t}{b}_{t}$ \\
 	\hline
 	\end{tabular} 	
 	\label{alg:1}
@@ -309,31 +344,39 @@ The second one is the \textit{stochastic dual update}:
     \begin{table}[ht]
 	\begin{tabular}{l}
 	\hline\noalign{\smallskip}
-    \textbf{Algorithm 2} SLLR-L1 \\
+	\textbf{Algorithm 2} SLLR-L1 \\
 	\noalign{\smallskip}
 	\hline
 	\noalign{\smallskip}
-        Input parameters: $\varepsilon, \nu, X, Y$ \\
-		Initialize parameters: $T, \eta, {\mathbf{u}}_{0}, {\bwavg}_{0}, {\mathbf{\bq}}_{1}, {b}_{1}$\\
-		Iterations: $t=1 \sim T$ \\
-		\tspace ${\bp}_{t}\leftarrow{\bq}_{t}/{\|{\bq}_{t}\|}_{1}$ \\
-	    \tspace Choose ${i}_{t}\leftarrow i$ with probability $\bp(i)$ \\
-		\tspace $coef={y}_{{i}_{t}}g\lc-{y}_{{i}_{t}}\lc {{\bwavg}_{t-1}}^{T}{\mathbf{x}}_{i_t}+{b}_{t} \rc\rc$ \\
-		\tspace Update ${\bu}_{t}, {b}_{t}$ \\
-        \tspace Iterations: $j=1 \sim d$ \\
-        \tspace\tspace \textbf{if} $\buprev_t\lj>0$ \textbf{and} $\bu_t\lj>0$ \\
-		\tspace\tspace\tspace $\bu_t\lj=\max \lc \bu_t\lj-\gamma ,0 \rc$ \\
-		\tspace\tspace \textbf{if} $\buprev_t\lj<0$ \textbf{and} $\bu_t\lj<0$ \\
-		\tspace\tspace\tspace $\bu_t\lj=\min \lc \bu_t\lj+\gamma ,0 \rc$ \\
-		\tspace ${\bw}_{t}\leftarrow {\bu}_{t}/\max \left\{1,\|{\bu}_{t}\|_2 \right\}$ \\
-		\tspace Choose ${j}_{t}\leftarrow j$ with probability ${{\bw}_{t}\lj}^{2}/{\|{\bw}_{t}\|_2}^{2} $ \\
-		\tspace Iterations: $i=1 \sim n$ \\
-		\tspace\tspace Update probability vector using MW method. \\
-		Output: $\bwavg_t,\bar{b}=\frac{1}{T}\sum_{t}{b}_{t}$ \\
+		1:    Input: $\varepsilon>0, \gamma>0, X\in\mathbb{R}^{n\times d}, Y\in\mathbb{R}^{n}$ \\
+		2:    Let $T\leftarrow{1000}^{2}{\varepsilon}^{-2}\log n, \eta\leftarrow\sqrt{\log\lc n\rc/T}$ \\
+		3:    \tspace ${\mathbf{u}}_{0}\leftarrow{\mathbf{0}}_{d},{\bwavg}_{0}\leftarrow{\mathbf{0}}_{d},{\mathbf{\bq}}_{1}\leftarrow{\mathbf{1}}_{n},{b}_{1}\leftarrow 0$\\
+		4:    \textbf{for} $t=1$ to $T$ \textbf{do} \\
+		5:    \tspace ${\bp}_{t}\leftarrow{\bq}_{t}/{\|{\bq}_{t}\|}_{1}$ \\
+		6:	  \tspace $\buprev_t\leftarrow\bu_{t-1}$ \\
+		7:    \tspace Choose ${i}_{t}\leftarrow i$ with probability $\bp(i)$ \\
+		8:    \tspace Let $coef={y}_{{i}_{t}}g\lc-{y}_{{i}_{t}}\lc {{\bwavg}_{t-1}}^{T}{\mathbf{x}}_{i_t}+{b}_{t} \rc\rc$ \\
+		9:    \tspace Let ${\bu}_{t}\leftarrow {\bu}_{t-1}+\frac{coef}{\sqrt{2T}}{\mathbf{x}}_{{i}_{t}}$ \\
+		10:   \tspaces\tspace ${b}_{t}\leftarrow \sgn\lc {{\bp}_{t}}^{T}\mathbf{y}\rc$ \\
+		11:   \tspaces \textbf{for} $j=1$ to $d$ \textbf{do} \\
+		12:   \tspaces\tspace \textbf{if} $\buprev_t\lj>0$ \textbf{and} $\bu_t\lj>0$ \\
+		13:	  \tspaces\tspace\tspace $\bu_t\lj=\max \lc \bu_t\lj-\gamma ,0 \rc$ \\
+		14:	  \tspaces\tspace \textbf{if} $\buprev_t\lj<0$ \textbf{and} $\bu_t\lj<0$ \\
+		15:   \tspaces\tspace\tspace $\bu_t\lj=\min \lc \bu_t\lj+\gamma ,0 \rc$ \\
+		16:   \tspaces \textbf{end for} \\
+		17:   \tspaces ${\bw}_{t}\leftarrow {\bu}_{t}/\max \left\{1,\|{\bu}_{t}\|_2 \right\}$ \\
+		18:   \tspaces ${\bwavg}_{t}\leftarrow \frac{t-1}{t}{\bwavg}_{t-1}+\frac{1}{t}\bw_t$ \\
+		19:   \tspaces Choose ${j}_{t}\leftarrow j$ with probability ${{\bw}_{t}\lj}^{2}/{\|{\bw}_{t}\|_2}^{2} $ \\
+		20:   \tspaces \textbf{for} $i=1$ to $n$ \textbf{do} \\
+		21:   \tspaces\tspace $\sigma \leftarrow \mathbf{x}_{i} \lc {j}_{t}\rc{\|{\bw}_{t}\|_2}^{2}/{\bw}_{t}\lc {j}_{t} \rc+{y}_{i}{b}_{t}$ \\
+		22:   \tspaces\tspace $\hat{\sigma} \leftarrow clip\lc \sigma,1/\eta \rc$ \\
+		23:   \tspaces\tspace ${\bq}_{t+1}\li \leftarrow {\bq}_{t}\li\lc 1-\eta\hat{\sigma} + {\eta}^{2}{\hat{\sigma}}^{2} \rc$ \\
+		24:   \tspaces \textbf{end for} \\
+		25:   \textbf{end for} \\
+		26:   Output: $\bwavg_t,\bar{b}=\frac{1}{T}\sum_{t}{b}_{t}$ \\
 	\hline
 	\end{tabular}
-	\end{table}	
-	In Algorithm~2, we give the sublinear approximation procedure for $\ell_1$-penalty logistic regression.
+	\end{table}
 
 \section{Parallel Framework of PSUBPLR} \label{sec:framework}
 	
@@ -346,23 +389,33 @@ In this section, we develop an approach to solve sublinear learning for penalize
 	\noalign{\smallskip}
 	\hline
 	\noalign{\smallskip}
-        Input parameters: $\varepsilon, \nu~or~\gamma, X, Y, n, d$ \\
-        Let $T\leftarrow{1000}^{2}{\varepsilon}^{-2}\log n, \eta\leftarrow\sqrt{\log\lc n\rc/T}$ \\
+        Input parameters: $\varepsilon, X, Y, n, d$ \\
+        \hspace*{7.8em} $\nu$ // \textsl{(for $\ell_2$-penalty)} \\
+        \hspace*{7.8em} $\gamma$ // \textsl{(for $\ell_1$-penalty)} \\
+        Let $T\leftarrow\frac{1}{n}{1000}^{2}{\varepsilon}^{-2}\log n, \eta\leftarrow\sqrt{\log\lc n\rc/T}$ \\
         \hspace*{1.5em} ${\bw}_{1}\leftarrow{\mathbf{0}}_{d}, {\mathbf{\bp}}_{1}\leftarrow{\mathbf{1}}_{n}, {b}_{1}\leftarrow 0$\\
 		\textbf{for} $t=1$ to $T$ \textbf{do} \\
-        \tspace Store $\bw_t$ in HDFS File "paraw", and add it to Distributed Cache \\
-        \tspace Store $\bp_t$  in HDFS File "parap", and add it to Distributed Cache \\
-		\tspace Pass parameters $T, n, d, b_t$ to \textit{Primal-MapReduce Job} by configuration setting \\
-        \tspace Set output file path of \textit{Primal-MapReduce Job} as "sublinear/tmp/primal$t$" \\
-        \tspace Start \textit{Primal-MapReduce Job}, and wait for completion \\
-        \tspace ($\bw_{t+1}, b_{t+1}$)$\leftarrow$PrimalUpdate($\bw_t, b_t$) \\
-        \tspace For $\ell_1$ penalty, add \textit{soft thresh-holding operation} \\
-        \tspace Choose $j_t \leftarrow j$ with probability ${{\bw}_{t+1}\lj}^{2}/{\|{\bw}_{t+1}\|_2}^{2} $ \\
-        \tspace Store $\bw_{t+1}$ in HDFS File "paraw", and add it to Distributed Cache \\
-		\tspace Pass parameters $d, jt, b_{t+1}, \eta$ to \textit{Dual-MapReduce Job} by configuration setting \\
-        \tspace Set output file path of \textit{Dual-MapReduce Job} as "sublinear/tmp/dual$t$" \\
-        \tspace Start \textit{Dual-MapReduce Job}, and wait for completion \\
-        \tspace $\bp_{t+1}$$\leftarrow$DualUpdate($\bp_t$) \\
+        \tspace HDFS-File("paraw") $\leftarrow \textit{Write-in-HDFS-File}(\bw_t)$ \\
+        \tspace $\textit{add-to-distributed-cache}$(HDFS-File("paraw"))   \\
+        \tspace HDFS-File("parap") $\leftarrow \textit{Write-in-HDFS-File}(\bp_t)$ \\
+        \tspace $\textit{add-to-distributed-cache}$(HDFS-File("parap"))   \\
+		\tspace Primal-MR $\leftarrow$ \textbf{new} \textit{MapReduce-Job}() \\
+        \tspace Primal-MR\textit{.configuration.setparameters}($T, n, d, b_t$) \\
+        \tspace Primal-MR\textit{.configuration.setOutputFilePath}("sublinear/tmp/primal$t$") \\
+        \tspace Primal-MR\textit{.start}() \\ 
+        \tspace Primal-MR\textit{.waitForCompletion}() \\
+        \tspace ($\bw_{t+1}, b_{t+1}$)$\leftarrow$\textit{PrimalUpdate}($\bw_t, b_t$) \\
+        \tspace \textit{soft-thresh-holding}($\bw_{t+1}$) // \textsl{for $\ell_1$-penalty only} \\
+        \tspace $j_t \leftarrow \textit{samplingFrom}(d)$ // with probability vector ${{\bw}_{t+1}\lj}^{2}/{\|{\bw}_{t+1}\|_2}^{2}$, for $j\in \{1,\ldots, d\}$ \\
+        \tspace HDFS-File("paraw") $\leftarrow \textit{Write-in-HDFS-File}(\bw_{t+1})$ \\
+        \tspace $\textit{add-to-distributed-cache}$(HDFS-File("paraw"))   \\
+        \tspace Dual-MR $\leftarrow$ \textbf{new} \textit{MapReduce-Job}() \\
+        \tspace Dual-MR\textit{.configuration.setparameters}($d, jt, b_{t+1}, \eta$) \\
+        \tspace Dual-MR\textit{.configuration.setOutputFilePath}("sublinear/tmp/dual$t$") \\
+        \tspace Dual-MR\textit{.start}() \\
+        \tspace Dual-MR\textit{.waitForCompletion}() \\
+        \tspace $\bp_{t+1}$$\leftarrow$\textit{DualUpdate}($\bp_t$) \\
+        \textbf{end for} \\
         Output: $\bar{\bw}=\frac{1}{T}\sum_{t}{\bw}_{t},\bar{b}=\frac{1}{T}\sum_{t}{b}_{t}$ \\
 	\hline
 	\end{tabular}
@@ -371,26 +424,24 @@ In this section, we develop an approach to solve sublinear learning for penalize
     \begin{table}[ht]
 	\begin{tabular}{l}
 	\hline\noalign{\smallskip}
-	\textbf{Procedure} Primal-Map() \\
+	\textbf{Procedure} Primal-Map(key, values) \\
 	\noalign{\smallskip}
 	\hline
 	\noalign{\smallskip}
-        Get parameters $T, n, d, b_t$  by configuration setting \\
-        Get parameters $\bw_t,$ from cached hdfs file "paraw" \\
-        Get parameters $\bp_t,$ from cached hdfs file "parap" \\
-        Input data file: $X, \mathbf{y}$ \\
-        $i_t \leftarrow$ \textit{parse row index} from $X$ \\
-        $\mathbf{x}_{i_t} \leftarrow$ \textit{parse row vector} from $X$ \\
-        $y_{i_t} \leftarrow$ \textit{parse row label} from $\mathbf{y}$ \\
-        $r \leftarrow$ \textit{random(seed)} \\
+        Configuration\textit{.getparameters}($T, n, d, b_t$) \\
+        $\bw_t \leftarrow$ \textit{Read-from-HDFS-File}(HDFS-File("paraw")) \\
+        $\bp_t \leftarrow$ \textit{Read-from-HDFS-File}(HDFS-File("parap")) \\
+        $i_t, \mathbf{x}_{i_t}, y_{i_t} \leftarrow \textit{Extract}$(values)   \\
+        $r \leftarrow$ \textit{random}(seed) \\
         \textbf{if} $\bp_t(i_t) > \frac{r}{n}$ \\
         \tspace $tmp\_coef=\bp_t(i_t){y}_{{i}_{t}}g\lc-{y}_{{i}_{t}}\lc {{\bw}_{t}}^{T}{\mathbf{x}}_{i_t}+{b}_{t} \rc\rc$ \\
         \textbf{else} \\
         \tspace $tmp\_coef=0$ \\
         \textbf{for} $j=1$ to $d$ \textbf{do} \\
-        \tspace Set $key \leftarrow j$ \\
-        \tspace Set $value \leftarrow \frac{tmp\_coef}{\sqrt{2T}}\mathbf{x}_{i_t}(j) $ \\
-        \tspace \textbf{Output}(key, value) \\
+        \tspace $Outkey \leftarrow j$ \\
+        \tspace $Outvalue \leftarrow \frac{tmp\_coef}{\sqrt{2T}}\mathbf{x}_{i_t}(j) $ \\
+        \tspace \textit{EmitIntermediate}($Outkey, Outvalue.\textit{toString}()$) \\
+        \textbf{end for} \\
 	\hline
 	\end{tabular}
 	\end{table}
@@ -398,13 +449,16 @@ In this section, we develop an approach to solve sublinear learning for penalize
     \begin{table}[ht]
 	\begin{tabular}{l}
 	\hline\noalign{\smallskip}
-	\textbf{Procedure} Primal-Reduce(key\_in, value\_in) \\
+	\textbf{Procedure} Primal-Reduce(key, values) \\
 	\noalign{\smallskip}
 	\hline
 	\noalign{\smallskip}
-        Set $key\_out \leftarrow key\_in$ \\
-        Set $value\_out \leftarrow \sum_{for~same~key\_in}{value\_in} $ \\
-        \textbf{Output}(key\_out, value\_out) \\
+        $Outkey \leftarrow key$ \\
+        $Outvalue \leftarrow 0$ \\
+        \textbf{for} each v \textbf{in} values \\
+        \tspace $Outvalue \leftarrow Outvalue+\textit{ParseDouble}(v) $ \\
+        \textbf{end for} \\
+        \textit{Emit}($Outkey, Outvalue.\textit{toString}()$) \\
 	\hline
 	\end{tabular}
 	\end{table}
@@ -416,7 +470,7 @@ In this section, we develop an approach to solve sublinear learning for penalize
 	\noalign{\smallskip}
 	\hline
 	\noalign{\smallskip}
-        Load $\Delta \bw_t$ from hdfs files in path "sublinear/tmp/primal$t$" \\
+        $\Delta \bw_t \leftarrow$ \textit{Read-from-HDFS}(HDFS-Path("sublinear/tmp/primal$t$")) \\
         $\bw_{t+1} \leftarrow \bw_t+\Delta \bw_t$ \\
 		${\bw}_{t+1}\leftarrow {\bw}_{t+1}/\max \left\{1,\|{\bw}_{t+1}\|_2 \right\}$ \\
         ${b}_{t+1}\leftarrow \sgn\lc {{\bp}_{t}}^{T}\mathbf{y}\rc$ \\
@@ -427,22 +481,18 @@ In this section, we develop an approach to solve sublinear learning for penalize
     \begin{table}[ht]
 	\begin{tabular}{l}
 	\hline\noalign{\smallskip}
-	\textbf{Procedure} Dual-Map() \\
+	\textbf{Procedure} Dual-Map(key, values) \\
 	\noalign{\smallskip}
 	\hline
 	\noalign{\smallskip}
-        Get parameters $d, j_t, b_{t+1}, \eta$  by configuration setting \\
-        Get parameters $\bw_{t+1},$ from cached hdfs file "paraw" \\
-        Input data file: $X, \mathbf{y}$ \\
-        $i_t \leftarrow$ \textit{parse row index} from $X$ \\
-        $\mathbf{x}_{i_t} \leftarrow$ \textit{parse row vector} from $X$ \\
-        $y_{i_t} \leftarrow$ \textit{parse row label} from $\mathbf{y}$ \\
+        Configuration\textit{.getparameters}($d, j_t, b_{t+1}, \eta$) \\
+        $\bw_{t+1} \leftarrow$ \textit{Read-from-HDFS-File}(HDFS-File("paraw")) \\
+        $i_t, \mathbf{x}_{i_t}, y_{i_t} \leftarrow \textit{Extract}$(values)   \\
+        $Outkey \leftarrow i_t$ \\
         $\sigma \leftarrow \mathbf{x}_{i_t} \lc {j}_{t}\rc{\|{\bw}_{t+1}\|_2}^{2}/{\bw}_{t+1}\lc {j}_{t} \rc+{y}_{i_t}{b}_{t+1}$ \\
 		$\hat{\sigma} \leftarrow clip\lc \sigma,1/\eta \rc$ \\
-		$res \leftarrow 1-\eta\hat{\sigma} + {\eta}^{2}{\hat{\sigma}}^{2} $ \\
-        Set $key \leftarrow i_t$ \\
-        Set $value \leftarrow res $ \\
-        \textbf{Output}(key, value) \\
+		$Outvalue \leftarrow 1-\eta\hat{\sigma} + {\eta}^{2}{\hat{\sigma}}^{2} $ \\
+        \textit{Emit}($Outkey, Outvalue.\textit{toString}()$) \\
 	\hline
 	\end{tabular}
 	\end{table}
@@ -454,19 +504,20 @@ In this section, we develop an approach to solve sublinear learning for penalize
 	\noalign{\smallskip}
 	\hline
 	\noalign{\smallskip}
-        Load $\mathbf{var}$ from hdfs files in path "sublinear/tmp/dual$t$" \\
+        $\mathbf{var} \leftarrow$ \textit{Read-from-HDFS}(HDFS-Path("sublinear/tmp/dual$t$")) \\
         \textbf{for} $j=1$ to $n$ \textbf{do} \\
         \tspace $\bp_{t+1}(j) \leftarrow \bp_t(j)*\mathbf{var}(j)$ \\
+        \textbf{end for} \\
 	\hline
 	\end{tabular}
 	\end{table}
-
+	
 \section{Algorithms and Analysis} \label{sec:alg}
 
 Our proposed algorithms are fast convergent and intrinsic fault-tolerant.
 	
 \subsection{Convergence Analysis}
-	We now formally describe the MW algorithm and give theorems for convergence our algorithms.
+	We now formally describe the MW algorithm, then state and prove theorems for convergence our algorithms.
 
 	\begin{definition}
 	(MW algorithm)~\cite{clarkson2010sublinear}. Consider a sequence of vectors $\mathbf{v}_1,...,\mathbf{v}_T\in\mathbb{R}^d$ and a parameter $\eta>0$. The Multiplicative Weights (MW) algorithm is defined as follows: let $\bw_1 \leftarrow \mathbf{1}_n$, and for $t\geq 1$,
@@ -478,7 +529,7 @@ Our proposed algorithms are fast convergent and intrinsic fault-tolerant.
 	The following lemma establishes a regret bound for the MW algorithm.
 	
 	\begin{lemma} \label{lem:2}
-	(The Variance MW Lemma)~\cite{clarkson2010sublinear}. The MW algorithm satisfies
+	(The Variance MW Lemma) from~\cite{clarkson2010sublinear}. The MW algorithm satisfies
 	\[
 	\sumt \bp_t^T\mathbf{v}_t \leq \min_{i\in\left\{1,...,n\right\} } \sumt \max\{\mathbf{v}_t(i),-\frac{1}{\eta}\}+\frac{\log n}{\eta}+\eta\sumt\bp_t^T \mathbf{v}_t^2
 	\]
@@ -503,12 +554,52 @@ Our proposed algorithms are fast convergent and intrinsic fault-tolerant.
 	
 \section{Experiments} \label{sec:experiment}
 
+\comment{Current Plan}
+
+\comment{Datasets and Measurements Description}
+
+\subsection{Analysis of Performance}
+
+\comment{on URL Reputation dataset (from UCI) and KDD CUP 2012 dataset}
+
+\comment{More datasets to be added}
+
+\comment{Test Error VS Core Number}
+
+\comment{Test Error VS Iterations}
+
+\comment{Time Used VS Core Number}
+
+\subsection{Analysis of Convergence}
+
+\comment{MAP VS Core Number}
+
+\comment{MAP VS Iterations}
+
+\subsection{Analysis of Fault Tolerance}
+
+\comment{Test Error VS Failed Core Number}
+
+\comment{Iterations Number VS Failed Core Number}
+
+\comment{Time Used VS Failed Core Number}
+
 Current URL-reputation Dataset Status
 
 \begin{figure}[tb] \label{fig:01}
 \center \includegraphics[height=5cm,width=10cm]{show1.png}
 \caption{URL-reputation Dataset, Performance Result}
 \end{figure}
+
+%\begin{figure}[tb] \label{fig:01}
+%\center \includegraphics[height=4cm,width=5.5cm]{show1.png}
+%\caption{Toy-Data, standard result}
+%\end{figure}
+
+%\begin{figure}[tb] \label{fig:02}
+%\center \includegraphics[height=4cm,width=5.5cm]{show2.png}
+%\caption{Toy-Data, wrong implementation result}
+%\end{figure}
 
 \section{Conclusion} \label{sec:concl}
 
