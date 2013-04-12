@@ -42,13 +42,13 @@ public class DataProcess {
 		}
 	}
 	public static void test_single() throws Exception {
-		int d=3231961;
-		int n=20000;
+		int d=3231961;//2
+		int n=20000;//3
 		double w[]=new double[d];
 		double res[]=new double[n];
 		double b=0;
 		int y[]=new int[n];
-		File fin=new File("output.txt");
+		File fin=new File("model100.txt");
 		FileReader reader = new FileReader(fin);
 		BufferedReader buf= new BufferedReader(reader);
 		String line="";
@@ -74,8 +74,9 @@ public class DataProcess {
 			line=line.substring(3);
 			String[] strs=line.split(" ");
 			for (int j=0;j<d;j++) x[j]=0;
+			//System.out.println(line);
 			for (int j=0;j<strs.length;j++)
-				x[Integer.parseInt(strs[j].split(":")[0])]=Double.parseDouble(strs[j].split(":")[1]);
+				x[Integer.parseInt(strs[j].split(":")[0])-1]=Double.parseDouble(strs[j].split(":")[1]);
 			double sum=0;
 			for (int j=0;j<d;j++)
 				sum+=w[j]*x[j];
