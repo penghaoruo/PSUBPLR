@@ -45,3 +45,26 @@ b: 0
 SublinearLogisticLone-v3.java
 parameter passing: hdfs+memcache
 b: 0
+
+javac -cp *.jar TestApi.java 
+java -cp .:*.jar TestApi
+
+export SCALA_LIBRARY_PATH=/usr/share/java
+env
+bin/start-all.sh
+./run spark.examples.SparkLR spark://10.29.68.111:7077 3
+./run spark.examples.SparkLR local[2]
+
+./run_me JavaHdfsLR spark://10.29.68.111:7077 xx.txt 3
+
+cat Day0.svm Day1.svm Day2.svm Day3.svm Day4.svm Day5.svm Day6.svm Day7.svm Day8.svm Day9.svm Day10.txt Day11.svm Day12.svm Day13.svm Day14.svm Day15.svm Day16.svm Day17.svm Day18.svm Day19.svm Day20.svm Day21.svm Day22.svm Day23.svm Day24.svm Day25.svm Day26.svm Day27.svm Day28.svm Day29.svm Day30.svm Day31.svm Day32.svm Day33.svm Day34.svm Day35.svm Day36.svm Day37.svm Day38.svm Day39.svm Day40.svm Day41.svm Day42.svm Day43.svm Day44.svm Day45.svm Day46.svm Day47.svm Day48.svm Day49.svm Day50.svm Day51.svm Day52.svm Day53.svm Day54.svm Day55.svm Day56.svm Day57.svm Day58.svm Day59.svm Day60.svm Day61.svm Day62.svm Day63.svm Day64.svm Day65.svm Day66.svm Day67.svm Day68.svm Day69.svm Day70.svm Day71.svm Day72.svm Day73.svm Day74.svm Day75.svm Day76.svm Day77.svm Day78.svm Day79.svm Day80.svm Day81.svm Day82.svm Day83.svm Day84.svm Day85.svm Day86.svm Day87.svm Day88.svm Day89.svm Day90.svm Day91.svm Day92.svm Day93.svm Day94.svm Day95.svm Day96.svm Day97.svm Day98.svm Day99.svm Day100.svm Day101.svm Day102.svm Day103.svm Day104.svm Day105.svm Day106.svm Day107.svm Day108.svm Day109.svm Day110.svm Day111.svm Day112.svm Day113.svm Day114.svm Day115.svm Day116.svm Day117.svm Day118.svm Day119.svm > combine120.txt
+
+javac -classpath spark-core_2.9.2-0.7.0.jar:/usr/share/java/scala-library.jar JavaHdfsLR.java -d .
+jar cvf JavaHdfsLR.jar *.class
+cp JavaHdfsLR.jar /home/henrypeng/spark-0.7.0/
+cp *.class /home/henrypeng/spark-0.7.0/
+
+bin/start-all.sh 
+bin/stop-all.sh 
+
+scp data_train.txt  henrypeng@10.29.68.115:/home/henrypeng/spark-0.7.0/data_train.txt
